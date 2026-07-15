@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía · Reporte de asistencia EIG — cómo funciona (copy-paste)</title>
+<style>
+  :root{--ink:#1c2530;--mut:#5b6a7a;--line:#e6e2e4;--vino:#8a1538;--bg:#faf7f8;
+        --code:#141a22;--code2:#0e1319;--ok:#1e7e34;--azul:#1f3b73;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+       color:var(--ink);background:#fff;line-height:1.6}
+  .hero{background:linear-gradient(135deg,#7a1230,#8a1538);color:#fff;padding:40px 0 34px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  .hero h1{margin:0 0 6px;font-size:27px;letter-spacing:-.3px}
+  .hero p{margin:0;opacity:.9;font-size:15px}
+  .hero .chips{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+        border-radius:999px;padding:4px 12px;font-size:12px}
+  main{padding:14px 0 80px}
+  h2{color:var(--vino);font-size:20px;margin:38px 0 6px;padding-bottom:6px;
+     border-bottom:2px solid var(--vino)}
+  h3{font-size:15px;margin:22px 0 4px}
+  p.d{color:#3a4653;font-size:14.5px;margin:6px 0 10px}
+  .step{display:flex;gap:12px;align-items:flex-start;margin:8px 0}
+  .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--vino);color:#fff;
+     font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:2px}
+  code.inl{background:#f0eef0;border-radius:5px;padding:1px 6px;font-size:13px;color:var(--vino)}
+  .cmd{position:relative;background:var(--code);border-radius:11px;margin:10px 0 4px;
+       box-shadow:0 2px 14px rgba(20,20,40,.12)}
+  .cmd .bar{display:flex;align-items:center;justify-content:space-between;
+            padding:8px 12px;border-bottom:1px solid #232c38}
+  .cmd .bar span{color:#8aa0b6;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase}
+  .cmd pre{margin:0;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.65;
+           color:#e6edf3;font-family:"SF Mono",Menlo,Consolas,monospace}
+  .cmd .cm{color:#6b8299}
+  .copy{background:#243043;color:#cfe0f0;border:1px solid #34455c;border-radius:7px;
+         padding:4px 12px;font-size:12px;cursor:pointer;transition:.15s}
+  .copy:hover{background:#2e3c52}
+  .copy.ok{background:#12351f;color:#8ff0aa;border-color:#1e5a34}
+  .flow{background:var(--bg);border:1px solid var(--line);border-radius:12px;
+        padding:14px 16px;margin:14px 0;font-size:13px;overflow:auto}
+  .flow pre{margin:0;color:#3a4653;font-family:"SF Mono",Menlo,monospace;font-size:12.5px}
+  .note{border-left:3px solid var(--azul);background:#f4f7fc;border-radius:8px;
+        padding:10px 14px;font-size:13.5px;margin:12px 0;color:#2a3a52}
+  .note.warn{border-left-color:#c0562a;background:#fdf4ef;color:#7a3a1e}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--vino);color:#fff;font-weight:600}
+  .tag{font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px}
+  .tag.ok{background:#e6f4ea;color:var(--ok)}.tag.pend{background:#fdf4ef;color:#c0562a}
+  footer{color:#8a97a6;font-size:12.5px;border-top:1px solid var(--line);
+         padding:16px 0 0;margin-top:40px}
+</style></head><body>
+
+<div class="hero"><div class="wrap">
+  <h1>Reporte de asistencia EIG — cómo funciona</h1>
+  <p>De un archivo plano de Zoom a los informes de la maestría, con un comando.</p>
+  <div class="chips">
+    <span class="chip">Python + SQLite</span><span class="chip">Arquitectura hexagonal</span>
+    <span class="chip">python-pptx</span><span class="chip">HTML → PDF</span>
+    <span class="chip">Sin base de datos en la nube</span>
+  </div>
+</div></div>
+
+<div class="wrap"><main>
+
+<h2>El flujo en una imagen</h2>
+<div class="flow"><pre>participants_*.csv        (archivo plano crudo de Zoom)
+      │  ── INTEGRADOR (asistencia-nucleo · hexagonal) ──►
+estandar.json             (estándar canónico: persona · sesión · asistencia)
+      │  ── schema + loader (SQLite json_each) ──►
+reporte_asistencia.db     (base relacional con reglas)
+      │  ── consolidados.sql (queries) ──►
+métricas                  (% asistencia · riesgo · matriz)
+      │  ── generadores ──►
+Informe comité (.pptx/.pdf)  +  Informe final (.pdf)</pre></div>
+
+<div class="note">Todo corre <b>local</b>, sin nube. Los umbrales del integrador:
+  <b>PRESENTE ≥ 60 min · PARCIAL ≥ 29 min · si no AUSENTE</b>.</div>
+
+<h2>Requisitos (una sola vez)</h2>
+<p class="d">Necesitas Python 3, SQLite, LibreOffice (para PPTX→PDF), Google Chrome
+   (para HTML→PDF) y poppler (<code class="inl">pdftoppm</code>, opcional para screenshots).</p>
+<div class="cmd"><div class="bar"><span>bash · macOS (Homebrew)</span>
+  <button class="copy">Copiar</button></div>
+<pre>brew install sqlite libreoffice poppler
+<span class="cm"># Chrome ya suele estar instalado en /Applications</span></pre></div>
+
+<h2>Camino rápido — un solo comando</h2>
+<p class="d">La simulación completa desde el archivo plano de Zoom hasta los informes:</p>
+<div class="cmd"><div class="bar"><span>desde la raíz del repo</span>
+  <button class="copy">Copiar</button></div>
+<pre>bash scripts/asistencia/demo/run_flujo_completo.sh</pre></div>
+<p class="d">Genera <code class="inl">estandar_desde_plano.json</code>, la base
+  <code class="inl">reporte_plano.db</code> y el informe de comité en
+  <code class="inl">scripts/asistencia/demo/</code>.</p>
+
+<h2>Paso a paso (control total)</h2>
+
+<div class="step"><div class="n">1</div><div>
+  <h3>Extraer: archivo plano → estándar (integrador real)</h3>
+  <p class="d">El integrador vive en <code class="inl">src/asistencia_nucleo</code> (vendorizado).
+     Convierte uno o varios CSV de Zoom al estándar canónico.</p>
+</div></div>
+<div class="cmd"><div class="bar"><span>integrador · nucleo extraer</span>
+  <button class="copy">Copiar</button></div>
+<pre>PYTHONPATH=src python3 -m asistencia_nucleo.entrypoints.cli extraer \
+  --fuente zoom=scripts/asistencia/demo/plano_zoom/participants_sesion1.csv \
+  --fuente zoom=scripts/asistencia/demo/plano_zoom/participants_sesion2.csv \
+  --programa "Energías Renovables" --cohorte C10 \
+  --salida estandar.json</pre></div>
+<div class="note">Tipos de fuente: <code class="inl">zoom</code> (participants CSV),
+  <code class="inl">erc</code> (FORMATO .xlsm con roster), <code class="inl">master</code>,
+  <code class="inl">matriz</code>. La fuente <b>erc</b> trae la lista completa, así que
+  incluye a los que nunca asistieron.</div>
+
+<div class="step"><div class="n">2</div><div>
+  <h3>Cargar: estándar → SQLite</h3>
+  <p class="d">El loader usa <code class="inl">readfile()</code> + <code class="inl">json_each()</code>
+     y lee <code class="inl">/tmp/estandar.json</code>.</p>
+</div></div>
+<div class="cmd"><div class="bar"><span>sqlite3</span><button class="copy">Copiar</button></div>
+<pre>PYTHONPATH=src python3 -m student_service.entrypoints.cli cargar \
+  --estandar estandar.json --db reporte_asistencia.db</pre></div>
+
+<div class="step"><div class="n">3</div><div>
+  <h3>(Opcional) Densificar ausencias</h3>
+  <p class="d">La fuente Zoom no tiene roster: solo emite filas de quien asistió. Para que
+     las ausencias queden explícitas sobre el roster observado:</p>
+</div></div>
+<div class="cmd"><div class="bar"><span>sqlite3 · densificar</span><button class="copy">Copiar</button></div>
+<pre><span class="cm"># o añade --densificar al comando de carga:</span>
+PYTHONPATH=src python3 -m student_service.entrypoints.cli cargar \
+  --estandar estandar.json --db reporte_asistencia.db --densificar</pre></div>
+
+<div class="step"><div class="n">4</div><div>
+  <h3>Consultar: los consolidados</h3>
+  <p class="d">Todas las métricas son queries en <code class="inl">consolidados.sql</code>
+     (Q1 matriz · Q2 por estudiante · Q3 no asistentes · Q4 por sesión · Q5 maestría).</p>
+</div></div>
+<div class="cmd"><div class="bar"><span>sqlite3 · ver consolidados</span><button class="copy">Copiar</button></div>
+<pre>sqlite3 -header -column reporte_asistencia.db \
+  ".read scripts/asistencia/consolidados.sql"</pre></div>
+
+<div class="step"><div class="n">5</div><div>
+  <h3>Generar los informes</h3>
+  <p class="d">Dos entregables, cada uno con su script.</p>
+</div></div>
+<div class="cmd"><div class="bar"><span>informe para comité (PPTX + PDF)</span><button class="copy">Copiar</button></div>
+<pre>PYTHONPATH=src python3 -m student_service.entrypoints.cli comite \
+  --db reporte_asistencia.db \
+  --plantilla "Documentos Referencia/5. Informe para comité curricular Energía de la biomasa ERC10.pptx" \
+  --salida informe_comite.pptx</pre></div>
+<div class="cmd"><div class="bar"><span>informe final (PDF)</span><button class="copy">Copiar</button></div>
+<pre><span class="cm"># CSV crudos -> datos del informe</span>
+PYTHONPATH=src python3 -m student_service.entrypoints.cli datos-final \
+  --encuesta encuesta.csv --docente docente.csv --calificaciones notas.csv \
+  --profesor "Nombre Docente" --salida datos.json
+<span class="cm"># datos -> informe final (HTML + PDF)</span>
+PYTHONPATH=src python3 -m student_service.entrypoints.cli final \
+  --datos datos.json --salida informe_final</pre></div>
+
+<h2>Los entregables</h2>
+<table>
+  <tr><th>Informe</th><th>Script</th><th>Fuente</th><th>Estado</th></tr>
+  <tr><td>Comité curricular (asistencia)</td><td><code class="inl">reporte comite</code></td>
+      <td>asistencia</td><td><span class="tag ok">listo</span></td></tr>
+  <tr><td>Informe final</td><td><code class="inl">reporte final</code></td>
+      <td>encuesta + docente</td><td><span class="tag pend">formato listo · datos pendientes</span></td></tr>
+</table>
+
+<h2>Verificación end-to-end</h2>
+<p class="d">Corre el flujo con datos de ejemplo y revisa el resultado:</p>
+<div class="cmd"><div class="bar"><span>demo desde estándar de ejemplo</span><button class="copy">Copiar</button></div>
+<pre>bash scripts/asistencia/demo/run_flujo.sh
+open scripts/asistencia/demo/presentacion.html</pre></div>
+
+<footer>
+  Reporte de asistencia EIG · pipeline local Python + SQLite · integrador
+  <code class="inl">samyrami/Asistencia-prisma</code>. Guía generada para copy-paste.
+</footer>
+
+</main></div>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const pre=btn.closest('.cmd').querySelector('pre');
+      const text=pre.innerText;
+      navigator.clipboard.writeText(text).then(()=>{
+        const old=btn.textContent; btn.textContent='✓ Copiado'; btn.classList.add('ok');
+        setTimeout(()=>{btn.textContent=old; btn.classList.remove('ok');},1400);
+      });
+    });
+  });
+</script>
+</body></html>

@@ -1,0 +1,40 @@
+# --- Python / entorno ---
+__pycache__/
+.venv/
+*.pyc
+.env
+.DS_Store
+*.log
+.pytest_cache/
+
+# --- DATOS REALES / PII: NUNCA al repositorio ---
+# Archivos crudos de la plataforma (nombres, correos, notas de estudiantes)
+Documentos Referencia/
+Contexto/
+# Bases de datos generadas
+*.db
+*.sqlite
+# Estándares con datos reales (el sintético de demo SÍ va)
+scripts/asistencia/estandar.json
+scripts/asistencia/demo/estandar_desde_plano.json
+scripts/asistencia/demo/informe_final_datos_ERC10.json
+# Informes generados (contienen PII)
+scripts/asistencia/informe_*.pdf
+scripts/asistencia/informe_*.pptx
+scripts/asistencia/informe_*.html
+scripts/asistencia/demo/informe_*
+scripts/asistencia/_versiones_previas/
+scripts/asistencia/comparacion/
+
+# --- Binarios pesados / material de presentación (fuera del repo) ---
+presentacion/
+scripts/asistencia/video/
+node_modules/
+*.mp4
+*.mp3
+*.mov
+# Material de verificación visual (screenshots de informes)
+scripts/asistencia/demo/shots/
+scripts/asistencia/demo/presentacion.html
+# Demo local (no va al repo)
+scripts/asistencia/demo/
