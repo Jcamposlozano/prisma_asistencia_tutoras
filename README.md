@@ -56,18 +56,20 @@ poetry run reporte datos-final --encuesta encuesta.csv --docente docente.csv \
     --calificaciones notas.csv --profesor "Nombre Docente" \
     --materia "Energía de la biomasa" --cohorte "10 NOV25" --salida datos.json
 
-# 4) Los dos informes
-poetry run reporte comite --db reporte.db --plantilla plantilla_comite.pptx \
-    --datos datos.json --salida informe_comite.pptx
+# 4) Los dos informes  (la plantilla limpia del comité ya viene en plantillas/)
+poetry run reporte comite --db reporte.db --datos datos.json \
+    --docente "Nombre Docente" --fechas "3/06/2026 – 28/06/2026" \
+    --salida informe_comite.pptx
 poetry run reporte final --datos datos.json --salida informe_final
 ```
 
 ## Datos / PII
 
-Los archivos de la plataforma, las bases generadas, los informes y la plantilla
-PPTX de comité contienen **datos personales de estudiantes** y están **fuera del
-control de versiones** (ver `.gitignore`). El repo solo lleva código, SQL y
-plantillas de configuración.
+Los archivos de la plataforma, las bases generadas y los informes contienen
+**datos personales de estudiantes** y están **fuera del control de versiones**
+(ver `.gitignore`). El repo solo lleva código, SQL, configuración y la
+**plantilla limpia** del comité (`plantillas/plantilla_comite.pptx`: mismas
+láminas y marca, sin ningún dato).
 
 ## Validación
 

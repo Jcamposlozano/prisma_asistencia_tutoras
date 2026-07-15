@@ -98,6 +98,22 @@ class PptxInformeComite:
         no_asisten = no_asistentes(resumenes)
         prs = Presentation(self.plantilla)
 
+        # rellenar placeholders de la plantilla limpia (docente / fechas)
+        meta = (incidencias or {}).get("_plantilla", {})
+        reemplazos = {
+            "[Nombre del docente]": meta.get("docente", ""),
+            "[dd/mm/aaaa – dd/mm/aaaa]": meta.get("fechas", ""),
+        }
+        for slide in prs.slides:
+            for sh in slide.shapes:
+                if not sh.has_text_frame:
+                    continue
+                for p in sh.text_frame.paragraphs:
+                    for r in p.runs:
+                        for ph, val in reemplazos.items():
+                            if val and ph in r.text:
+                                r.text = r.text.replace(ph, val)
+
         def pct(c: int) -> str:
             return f"{round(100.0 * c / n, 2):.2f}".replace(".", ",") if n else "0,00"
 

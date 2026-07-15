@@ -40,8 +40,10 @@ def cmd_cargar(a) -> int:
 def cmd_comite(a) -> int:
     repo = SqliteRepositorioAsistencia(a.db)
     render = PptxInformeComite(a.plantilla, exportar_pdf=not a.solo_pptx)
-    inc = json.loads(Path(a.datos).read_text(encoding="utf-8")) if a.datos else None
-    out = GenerarInformeComite(repo, render).ejecutar(a.salida, incidencias=inc)
+    inc = json.loads(Path(a.datos).read_text(encoding="utf-8")) if a.datos else {}
+    if a.docente or a.fechas:
+        inc["_plantilla"] = {"docente": a.docente or "", "fechas": a.fechas or ""}
+    out = GenerarInformeComite(repo, render).ejecutar(a.salida, incidencias=inc or None)
     print(f"comité -> {out}")
     return 0
 
@@ -91,9 +93,11 @@ def construir_parser() -> argparse.ArgumentParser:
 
     c = sub.add_parser("comite", help="Genera el informe para comité curricular (PPTX+PDF).")
     c.add_argument("--db", default="reporte_asistencia.db")
-    c.add_argument("--plantilla", required=True,
-                   help="PPTX original de la coordinación (local, contiene PII: no va al repo).")
+    c.add_argument("--plantilla", default="plantillas/plantilla_comite.pptx",
+                   help="PPTX plantilla del comité (por defecto la plantilla limpia del repo).")
     c.add_argument("--datos", help="JSON de datos-final con 'no_superan' (lámina de incidencias).")
+    c.add_argument("--docente", help="Nombre del docente (rellena el placeholder de la plantilla).")
+    c.add_argument("--fechas", help='Fechas del módulo, p.ej. "3/06/2026 – 28/06/2026".')
     c.add_argument("--salida", default="informe_comite.pptx")
     c.add_argument("--solo-pptx", action="store_true")
     c.set_defaults(func=cmd_comite)
