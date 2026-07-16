@@ -6,6 +6,8 @@ dedup de minutos por persona y estado por umbrales.
 
 from __future__ import annotations
 
+import re
+
 from openpyxl import load_workbook
 
 from ...domain.dedup import sumar_por_persona
@@ -47,8 +49,27 @@ class ErcXlsmExtractor:
                                     programa=self.programa, cohorte=self.cohorte))
         return personas
 
+    def _umbrales_por_hoja(self) -> dict[str, float]:
+        """Umbral de PRESENTE por sesión, leído de la fórmula 'Res' de cada hoja.
+
+        Las tutoras clasifican con =IF(D2>=U,"A",...) y U varía por sesión
+        (60 los viernes, 120 los sábados: clases más largas). Si no hay fórmula
+        (valores pegados), se usa el umbral global.
+        """
+        umbrales: dict[str, float] = {}
+        wbf = load_workbook(self.path, data_only=False, keep_vba=True)
+        for hoja in SESIONES:
+            if hoja not in wbf.sheetnames:
+                continue
+            formula = wbf[hoja].cell(row=2, column=5).value
+            m = re.search(r'>=\s*(\d+(?:\.\d+)?)\s*,\s*"A"', str(formula or ""))
+            if m:
+                umbrales[hoja] = float(m.group(1))
+        return umbrales
+
     def extraer(self) -> DatasetCanonico:
         wb = load_workbook(self.path, data_only=True, keep_vba=True)
+        umbrales = self._umbrales_por_hoja()
         personas = self._roster(wb)
         mod = self.modulo or "ERC"
         sesiones: list[Sesion] = []
@@ -77,11 +98,12 @@ class ErcXlsmExtractor:
                                       "correo": correo, "minutos": round(minutos, 1),
                                       "nivel": m.nivel.value})
             mins = sumar_por_persona(pares)
+            presente_min = umbrales.get(hoja, self.presente_min)
             for p in personas:
                 mm = mins.get(p.clave, 0.0)
                 asistencias.append(Asistencia(
                     persona_id=p.id, sesion_id=sesion.id,
-                    estado=estado_por_minutos(mm, self.presente_min, self.parcial_min),
+                    estado=estado_por_minutos(mm, presente_min, self.parcial_min),
                     minutos=round(mm, 1), origen="erc-xlsm", nombre_origen=p.nombre))
 
         return DatasetCanonico(fuente="erc-xlsm", personas=personas, sesiones=sesiones,
