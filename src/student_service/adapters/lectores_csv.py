@@ -48,8 +48,15 @@ def _sin_tildes(s: str) -> str:
 
 class LectorEncuestaCsv:
     def leer(self, path: str) -> dict[str, Any]:
-        rows = _leer_csv(path, ";")
-        data = rows[2:]  # fila 0 = ColumnN, fila 1 = textos de pregunta
+        # El export crudo de la plataforma viene con ',' y las preguntas en la
+        # fila 0; las copias re-guardadas en Excel vienen con ';' y una fila
+        # extra "Column1...". Detectar ambos.
+        rows = _leer_csv(path, _sniff_delim(path))
+        fila_preguntas = next(
+            i for i, r in enumerate(rows)
+            if any(re.match(r"\s*\d{5,}:", str(c)) for c in r)
+        )
+        data = rows[fila_preguntas + 1:]
         n = len(data)
         preguntas = [
             {
